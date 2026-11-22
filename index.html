@@ -1,0 +1,898 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Planet Clicker 🚀</title>
+<style>
+* { box-sizing:border-box; margin:0; padding:0; }
+
+body {
+    background:#090b1c;
+    color:white;
+    font-family:Arial,sans-serif;
+    min-height:100vh;
+    overflow-x:hidden;
+}
+
+body::before {
+    content:"";
+    position:fixed;
+    inset:0;
+    z-index:-1;
+    background:
+        radial-gradient(circle at 20% 20%,#542b843b,transparent 40%),
+        radial-gradient(circle at 80% 80%,#1458a53b,transparent 40%);
+}
+
+header {
+    padding:22px;
+    text-align:center;
+    font-size:25px;
+    font-weight:900;
+    background:#13152a;
+    border-bottom:1px solid #34395b;
+}
+
+header span { color:#a78bfa; }
+
+.container {
+    max-width:950px;
+    margin:auto;
+    padding:20px;
+}
+
+button {
+    color:white;
+    font-family:inherit;
+    cursor:pointer;
+}
+
+.stats {
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:10px;
+    margin-bottom:20px;
+}
+
+.stat {
+    background:#191d38;
+    border:1px solid #34395c;
+    border-radius:15px;
+    padding:16px 5px;
+    text-align:center;
+}
+
+.stat small {
+    display:block;
+    color:#a5a9c8;
+    margin:7px 0;
+    font-size:11px;
+}
+
+.stat strong {
+    font-size:21px;
+    color:#c4b5fd;
+}
+
+.nav {
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:9px;
+    margin-bottom:20px;
+}
+
+.nav button {
+    background:#1b2040;
+    border:1px solid #363c65;
+    padding:14px 5px;
+    border-radius:12px;
+    font-weight:bold;
+    font-size:13px;
+}
+
+.nav button.active {
+    background:linear-gradient(135deg,#854ee4,#465cda);
+}
+
+.screen { display:none; }
+.screen.active { display:block; }
+
+.panel {
+    background:#151a32;
+    border:1px solid #34395c;
+    border-radius:19px;
+    padding:22px;
+    margin-bottom:18px;
+}
+
+h2 {
+    font-size:19px;
+    color:#c4b5fd;
+    margin-bottom:18px;
+}
+
+.planet-card {
+    text-align:center;
+    padding:25px 10px;
+    background:radial-gradient(circle,#29285d,#151a32 70%);
+    border-radius:20px;
+    border:1px solid #a78bfa44;
+}
+
+.planet-name {
+    font-size:25px;
+    font-weight:bold;
+}
+
+.planet-stage {
+    height:320px;
+    width:320px;
+    max-width:100%;
+    margin:15px auto;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    position:relative;
+}
+
+.orbit {
+    position:absolute;
+    width:310px;
+    height:310px;
+    max-width:100%;
+    border:2px solid #a78bfa45;
+    border-radius:50%;
+    animation:rotate 18s linear infinite;
+}
+
+.orbit::before {
+    content:"✦";
+    position:absolute;
+    top:30px;
+    left:30px;
+    font-size:22px;
+}
+
+.orbit::after {
+    content:"✧";
+    position:absolute;
+    bottom:40px;
+    right:25px;
+    font-size:25px;
+    color:#67e8f9;
+}
+
+@keyframes rotate {
+    to { transform:rotate(360deg); }
+}
+
+.planet-circle {
+    width:270px;
+    height:270px;
+    border-radius:50%;
+    background:radial-gradient(circle,#354e91,#17234d);
+    box-shadow:0 0 45px #6575ed66;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+}
+
+.planet {
+    border:0;
+    background:none;
+    font-size:195px;
+    width:240px;
+    height:240px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    animation:float 4s ease-in-out infinite;
+    filter:drop-shadow(0 10px 15px #0008);
+    -webkit-tap-highlight-color:transparent;
+    user-select:none;
+    touch-action:manipulation;
+}
+
+.planet:focus-visible {
+    outline:2px solid #c4b5fd;
+    outline-offset:-5px;
+    border-radius:50%;
+}
+
+@keyframes float {
+    50% { transform:translateY(-7px); }
+}
+
+.planet.bounce {
+    animation:bounce .42s ease-out;
+}
+
+@keyframes bounce {
+    0% { transform:scale(1); }
+    20% { transform:scale(1.22,.78) rotate(-5deg); }
+    40% { transform:scale(.82,1.18) rotate(5deg); }
+    60% { transform:scale(1.12,.9); }
+    80% { transform:scale(.97,1.04); }
+    100% { transform:scale(1); }
+}
+
+.hint {
+    color:#aaaed0;
+    font-size:13px;
+}
+
+#message {
+    color:#67e8f9;
+    min-height:20px;
+    margin-top:13px;
+    font-size:13px;
+}
+
+.floating {
+    position:absolute;
+    color:#fde68a;
+    font-size:23px;
+    font-weight:bold;
+    pointer-events:none;
+    animation:up .8s forwards;
+    z-index:5;
+}
+
+@keyframes up {
+    to {
+        opacity:0;
+        transform:translateY(-90px) scale(1.3);
+    }
+}
+
+.primary {
+    background:linear-gradient(135deg,#8952e6,#5066df);
+    border:0;
+    border-radius:11px;
+    color:white;
+    padding:13px 20px;
+    font-weight:bold;
+    cursor:pointer;
+}
+
+.primary:disabled {
+    opacity:.4;
+    cursor:not-allowed;
+}
+
+.progress {
+    height:10px;
+    background:#303653;
+    border-radius:20px;
+    overflow:hidden;
+    margin-top:12px;
+}
+
+.progress-fill {
+    height:100%;
+    width:0%;
+    background:linear-gradient(90deg,#8b5cf6,#22d3ee);
+    transition:width .2s;
+}
+
+.info {
+    color:#a5a9c8;
+    font-size:13px;
+    margin-bottom:15px;
+    line-height:1.6;
+}
+
+.shop-grid {
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:12px;
+}
+
+.shop-item {
+    background:#202644;
+    border:1px solid #3b4269;
+    border-radius:15px;
+    padding:16px;
+}
+
+.shop-icon {
+    font-size:32px;
+    margin-bottom:10px;
+}
+
+.shop-item h3 {
+    font-size:15px;
+    margin-bottom:8px;
+}
+
+.shop-item p {
+    color:#a5a9c8;
+    font-size:12px;
+    line-height:1.5;
+    min-height:35px;
+}
+
+.level {
+    color:#c4b5fd;
+    font-size:12px;
+    margin:12px 0;
+}
+
+.shop-item button { width:100%; }
+
+.planet-grid {
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:12px;
+}
+
+.world {
+    background:#202644;
+    border:1px solid #3c4268;
+    border-radius:15px;
+    padding:17px 5px;
+    text-align:center;
+}
+
+.world.selected {
+    border:2px solid #a78bfa;
+    background:#302654;
+}
+
+.world:disabled {
+    opacity:.4;
+    cursor:not-allowed;
+}
+
+.world-icon {
+    font-size:40px;
+    margin-bottom:10px;
+}
+
+.world strong {
+    display:block;
+    font-size:13px;
+}
+
+.world p {
+    color:#a5a9c8;
+    font-size:11px;
+    margin-top:7px;
+}
+
+footer {
+    text-align:center;
+    padding:25px;
+    color:#777e9f;
+    font-size:12px;
+}
+
+@media(max-width:600px) {
+    .container { padding:13px; }
+    .stat strong { font-size:16px; }
+    .planet-stage { width:290px;height:290px; }
+    .orbit { width:285px;height:285px; }
+    .planet-circle { width:245px;height:245px; }
+    .planet { font-size:175px;width:220px;height:220px; }
+    .shop-grid { grid-template-columns:1fr; }
+    .planet-grid { grid-template-columns:repeat(2,1fr); }
+}
+</style>
+</head>
+
+<body>
+<header>🚀 PLANET <span>CLICKER</span></header>
+
+<div class="container">
+
+<div class="stats">
+    <div class="stat">
+        ✨
+        <small>STARDUST</small>
+        <strong id="coins">0</strong>
+    </div>
+    <div class="stat">
+        👆
+        <small>CLICK POWER</small>
+        <strong id="power">1</strong>
+    </div>
+    <div class="stat">
+        ⚡
+        <small>AUTO CLICK SPEED</small>
+        <strong id="speedDisplay">10.0s</strong>
+    </div>
+</div>
+
+<div class="nav">
+    <button id="homeTab" class="active" onclick="show('home')">🌍 PLANET</button>
+    <button id="shopTab" onclick="show('shop')">🛒 SHOP</button>
+    <button id="menuTab" onclick="show('menu')">🪐 PLANETS</button>
+</div>
+
+<section id="homeScreen" class="screen active">
+    <div class="planet-card">
+        <div style="color:#a78bfa;font-size:12px;letter-spacing:3px;margin-bottom:10px">
+            YOUR SPACE ADVENTURE
+        </div>
+
+        <div class="planet-name" id="planetName">EARTH</div>
+
+        <div class="planet-stage" id="planetStage">
+            <div class="orbit"></div>
+            <div class="planet-circle">
+                <button class="planet" id="planet" type="button" aria-label="Click planet">🌍</button>
+            </div>
+        </div>
+
+        <div class="hint">TAP YOUR PLANET TO EARN STARDUST</div>
+        <div id="message">Welcome to your galaxy!</div>
+    </div>
+
+    <div class="panel" style="margin-top:20px">
+        <h2>⚡ Auto Clicker Status</h2>
+        <div class="info" id="autoInfo"></div>
+        <div class="progress">
+            <div class="progress-fill" id="autoProgress"></div>
+        </div>
+        <div class="info" style="margin-top:10px" id="timerInfo"></div>
+    </div>
+</section>
+
+<section id="shopScreen" class="screen">
+    <div class="panel">
+        <h2>🛒 Galactic Shop</h2>
+        <div class="info">
+            Upgrade your clicking power, buy automatic clicks and make your auto-clicker faster!
+        </div>
+        <div class="info">Your Stardust: <strong id="shopCoins">0</strong> ✨</div>
+        <div class="shop-grid" id="shopItems"></div>
+    </div>
+</section>
+
+<section id="menuScreen" class="screen">
+    <div class="panel">
+        <h2>🪐 Planet Selection</h2>
+        <div class="info">
+            Unlock new planets with Stardust and travel between your unlocked worlds.
+        </div>
+        <div class="planet-grid" id="worlds"></div>
+        <div style="margin-top:22px">
+            <div style="display:flex;justify-content:space-between;font-size:12px;color:#aaaed0">
+                <span>Galaxy exploration</span>
+                <span id="progressText">1 / 6</span>
+            </div>
+            <div class="progress">
+                <div class="progress-fill" id="planetProgress"></div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<footer>PLANET CLICKER • EXPLORE THE UNIVERSE</footer>
+</div>
+
+<script>
+"use strict";
+
+// ============================
+// GAME DATA
+// ============================
+
+const SAVE_KEY = "planetClickerSave_v2";
+
+const startingUpgrades = () => [
+    {name:"Better Finger",icon:"👆",description:"+1 manual click power",cost:25,amount:1,level:0,type:"click"},
+    {name:"Super Finger",icon:"💪",description:"+5 manual click power",cost:150,amount:5,level:0,type:"click"},
+    {name:"Mega Finger",icon:"⚡",description:"+25 manual click power",cost:1200,amount:25,level:0,type:"click"},
+    {name:"Auto Clicker",icon:"🤖",description:"+1 automatic click every 10 seconds",cost:50,amount:1,level:0,type:"auto"},
+    {name:"Auto Clicker Pack",icon:"🛸",description:"+5 automatic clicks every cycle",cost:400,amount:5,level:0,type:"auto"},
+    {name:"Speed Upgrade",icon:"⏩",description:"Makes your auto-clicker 0.1 seconds faster",cost:200,amount:0.1,level:0,type:"speed"},
+    {name:"Turbo Speed",icon:"🚀",description:"Makes your auto-clicker 0.1 seconds faster",cost:1200,amount:0.1,level:0,type:"speed"}
+];
+
+const planets = [
+    {name:"Earth",icon:"🌍",cost:0},
+    {name:"Mars",icon:"🔴",cost:1000},
+    {name:"Jupiter",icon:"🟠",cost:5000},
+    {name:"Saturn",icon:"🪐",cost:20000},
+    {name:"Neptune",icon:"🔵",cost:75000},
+    {name:"Galaxy",icon:"🌌",cost:250000}
+];
+
+let coins = 0;
+let clickPower = 1;
+let autoClicks = 0;
+let autoSpeed = 10;
+let autoTimer = 0;
+let currentPlanet = 0;
+let unlocked = [0];
+let upgrades = startingUpgrades();
+
+// ============================
+// FORMATTING
+// ============================
+
+function format(n) {
+    if(n >= 1e12) return (n/1e12).toFixed(2)+"T";
+    if(n >= 1e9) return (n/1e9).toFixed(2)+"B";
+    if(n >= 1e6) return (n/1e6).toFixed(2)+"M";
+    if(n >= 1000) return (n/1000).toFixed(1)+"K";
+    return Math.floor(n).toLocaleString();
+}
+
+function formatSpeed(n) {
+    return n.toFixed(1)+"s";
+}
+
+// ============================
+// NAVIGATION
+// ============================
+
+function show(screen) {
+    document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+    document.querySelectorAll(".nav button").forEach(b => b.classList.remove("active"));
+
+    document.getElementById(screen+"Screen").classList.add("active");
+    document.getElementById(screen+"Tab").classList.add("active");
+
+    update();
+    window.scrollTo({top:0,behavior:"smooth"});
+}
+
+// ============================
+// PLANET CLICK
+// ============================
+
+function clickPlanet() {
+    coins += clickPower;
+    animatePlanet(clickPower);
+
+    document.getElementById("message").textContent =
+        "+"+format(clickPower)+" Stardust! ✨";
+
+    update();
+    saveGame();
+}
+
+function animatePlanet(amount) {
+    const planetButton = document.getElementById("planet");
+    planetButton.classList.remove("bounce");
+    void planetButton.offsetWidth;
+    planetButton.classList.add("bounce");
+
+    const floating = document.createElement("div");
+    floating.className = "floating";
+    floating.textContent = "+"+format(amount)+" ✨";
+    floating.style.left = (25+Math.random()*45)+"%";
+    floating.style.top = "30%";
+
+    document.getElementById("planetStage").appendChild(floating);
+    setTimeout(() => floating.remove(),850);
+}
+
+const planetButton = document.getElementById("planet");
+let keyboardPressed = false;
+
+planetButton.addEventListener("keydown",function(event) {
+    if(event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        if(!keyboardPressed && !event.repeat) {
+            keyboardPressed = true;
+            clickPlanet();
+        }
+    }
+});
+
+planetButton.addEventListener("keyup",function(event) {
+    if(event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        keyboardPressed = false;
+    }
+});
+
+planetButton.addEventListener("blur",function() {
+    keyboardPressed = false;
+});
+
+planetButton.addEventListener("click",function(event) {
+    if(event.detail > 0) clickPlanet();
+});
+
+// ============================
+// SHOP
+// ============================
+
+function buyUpgrade(index) {
+    const u = upgrades[index];
+
+    if(!u || coins < u.cost) return;
+
+    if(u.type === "speed" && autoClicks === 0) {
+        document.getElementById("message").textContent =
+            "Buy an auto-clicker first!";
+        return;
+    }
+
+    if(u.type === "speed" && autoSpeed <= 0.1) {
+        document.getElementById("message").textContent =
+            "Your auto-clicker is already at maximum speed!";
+        return;
+    }
+
+    coins -= u.cost;
+
+    if(u.type === "click") clickPower += u.amount;
+    if(u.type === "auto") autoClicks += u.amount;
+
+    if(u.type === "speed") {
+        autoSpeed = Math.max(0.1,Math.round((autoSpeed-u.amount)*10)/10);
+        autoTimer = Math.min(autoTimer,autoSpeed);
+    }
+
+    u.level++;
+    u.cost = Math.floor(u.cost*1.65);
+
+    update();
+    saveGame();
+}
+
+function renderShop() {
+    const container = document.getElementById("shopItems");
+    container.innerHTML = "";
+
+    upgrades.forEach((u,index) => {
+        const item = document.createElement("div");
+        item.className = "shop-item";
+
+        const icon = document.createElement("div");
+        icon.className = "shop-icon";
+        icon.textContent = u.icon;
+
+        const title = document.createElement("h3");
+        title.textContent = u.name;
+
+        const desc = document.createElement("p");
+        desc.textContent = u.description;
+
+        const level = document.createElement("div");
+        level.className = "level";
+        level.textContent = u.type === "speed"
+            ? "LEVEL "+u.level+" • CURRENT SPEED: "+formatSpeed(autoSpeed)
+            : "LEVEL "+u.level;
+
+        const button = document.createElement("button");
+        button.className = "primary";
+        button.textContent = format(u.cost)+" ✨";
+
+        button.disabled =
+            coins < u.cost ||
+            (u.type === "speed" && (autoClicks === 0 || autoSpeed <= 0.1));
+
+        button.onclick = () => buyUpgrade(index);
+
+        item.append(icon,title,desc,level,button);
+        container.appendChild(item);
+    });
+}
+
+// ============================
+// PLANET MENU
+// ============================
+
+function renderPlanets() {
+    const container = document.getElementById("worlds");
+    container.innerHTML = "";
+
+    planets.forEach((p,index) => {
+        const isUnlocked = unlocked.includes(index);
+
+        const button = document.createElement("button");
+        button.className = "world";
+
+        if(currentPlanet === index) button.classList.add("selected");
+
+        const icon = document.createElement("div");
+        icon.className = "world-icon";
+        icon.textContent = p.icon;
+
+        const name = document.createElement("strong");
+        name.textContent = p.name;
+
+        const price = document.createElement("p");
+        price.textContent = isUnlocked
+            ? (currentPlanet === index ? "Currently visiting" : "Unlocked")
+            : format(p.cost)+" ✨";
+
+        button.append(icon,name,price);
+
+        button.disabled =
+            !isUnlocked && (index !== unlocked.length || coins < p.cost);
+
+        button.onclick = () => {
+            if(isUnlocked) {
+                currentPlanet = index;
+            } else if(coins >= p.cost && index === unlocked.length) {
+                coins -= p.cost;
+                unlocked.push(index);
+                currentPlanet = index;
+
+                document.getElementById("message").textContent =
+                    p.name+" unlocked! 🎉";
+            }
+
+            update();
+            saveGame();
+        };
+
+        container.appendChild(button);
+    });
+
+    document.getElementById("progressText").textContent =
+        unlocked.length+" / "+planets.length;
+
+    document.getElementById("planetProgress").style.width =
+        (unlocked.length/planets.length*100)+"%";
+}
+
+// ============================
+// UPDATE DISPLAY
+// ============================
+
+function update() {
+    document.getElementById("coins").textContent = format(coins);
+    document.getElementById("power").textContent = format(clickPower);
+    document.getElementById("speedDisplay").textContent =
+        autoClicks > 0 ? formatSpeed(autoSpeed) : "No Auto Click";
+
+    document.getElementById("planet").textContent = planets[currentPlanet].icon;
+    document.getElementById("planetName").textContent =
+        planets[currentPlanet].name.toUpperCase();
+
+    document.getElementById("shopCoins").textContent = format(coins);
+
+    if(autoClicks > 0) {
+        document.getElementById("autoInfo").textContent =
+            autoClicks+" automatic clicks every "+formatSpeed(autoSpeed)+
+            ". Each click earns "+format(clickPower)+" Stardust.";
+
+        document.getElementById("autoProgress").style.width =
+            (autoTimer/autoSpeed*100)+"%";
+
+        document.getElementById("timerInfo").textContent =
+            "Next automatic click in "+
+            Math.max(0,autoSpeed-autoTimer).toFixed(1)+" seconds.";
+    } else {
+        document.getElementById("autoInfo").textContent =
+            "You don't own an auto-clicker yet. Buy one in the shop for 50 Stardust!";
+
+        document.getElementById("autoProgress").style.width = "0%";
+        document.getElementById("timerInfo").textContent =
+            "Auto-clicker is inactive. It will start after you buy one.";
+    }
+
+    renderShop();
+    renderPlanets();
+}
+
+// ============================
+// AUTO CLICKER TIMER
+// ============================
+
+let lastTime = Date.now();
+
+setInterval(() => {
+    const now = Date.now();
+    const delta = Math.min((now-lastTime)/1000,1);
+    lastTime = now;
+
+    if(autoClicks > 0) {
+        autoTimer += delta;
+
+        if(autoTimer >= autoSpeed) {
+            const cycles = Math.floor(autoTimer/autoSpeed);
+            autoTimer -= cycles*autoSpeed;
+
+            const earned = cycles*autoClicks*clickPower;
+            coins += earned;
+
+            if(document.getElementById("homeScreen").classList.contains("active")) {
+                animatePlanet(earned);
+            }
+
+            saveGame();
+        }
+    }
+
+    update();
+},100);
+
+// ============================
+// SAVE GAME
+// ============================
+
+function saveGame() {
+    const data = {
+        coins,
+        clickPower,
+        autoClicks,
+        autoSpeed,
+        autoTimer,
+        currentPlanet,
+        unlocked,
+        upgrades
+    };
+
+    localStorage.setItem(SAVE_KEY,JSON.stringify(data));
+}
+
+// ============================
+// LOAD GAME
+// ============================
+
+function loadGame() {
+    const saved = localStorage.getItem(SAVE_KEY);
+
+    // A new player always starts with the requested values.
+    if(!saved) {
+        coins = 0;
+        clickPower = 1;
+        autoClicks = 0;
+        autoSpeed = 10;
+        autoTimer = 0;
+        currentPlanet = 0;
+        unlocked = [0];
+        upgrades = startingUpgrades();
+        saveGame();
+        return;
+    }
+
+    try {
+        const d = JSON.parse(saved);
+
+        coins = Math.max(0,Number(d.coins)||0);
+        clickPower = Math.max(1,Number(d.clickPower)||1);
+        autoClicks = Math.max(0,Number(d.autoClicks)||0);
+        autoSpeed = Math.max(0.1,Number(d.autoSpeed)||10);
+        autoTimer = Math.max(0,Math.min(Number(d.autoTimer)||0,autoSpeed));
+
+        unlocked = Array.isArray(d.unlocked)
+            ? d.unlocked.filter(i => Number.isInteger(i) && i>=0 && i<planets.length)
+            : [0];
+
+        if(!unlocked.includes(0)) unlocked.unshift(0);
+
+        currentPlanet = unlocked.includes(d.currentPlanet)
+            ? d.currentPlanet : 0;
+
+        if(Array.isArray(d.upgrades) && d.upgrades.length === upgrades.length) {
+            upgrades = d.upgrades;
+        }
+    } catch(error) {
+        // If a save is damaged, start a clean new game.
+        localStorage.removeItem(SAVE_KEY);
+        coins = 0;
+        clickPower = 1;
+        autoClicks = 0;
+        autoSpeed = 10;
+        autoTimer = 0;
+        currentPlanet = 0;
+        unlocked = [0];
+        upgrades = startingUpgrades();
+        saveGame();
+    }
+}
+
+// ============================
+// AUTOSAVE AND START
+// ============================
+
+loadGame();
+update();
+
+setInterval(saveGame,3000);
+window.addEventListener("beforeunload",saveGame);
+</script>
+</body>
+</html>
